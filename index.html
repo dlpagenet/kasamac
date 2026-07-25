@@ -304,12 +304,12 @@
     </div>
   </div>
 
-  <!-- Łączenie z Firebase (Baza danych na żywo) -->
+  <!-- Łączenie z Firebase (Baza danych) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, push, get, update, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // Twoja konfiguracja z Firebase
+    // Twoja konfiguracja Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDvN-W1c5U1si6obpV2qoBQZxKrsTI12oU",
       authDomain: "mcdonalds-kds.firebaseapp.com",
@@ -320,12 +320,11 @@
       appId: "1:223078937695:web:b3654f74095ecc82cb97ea"
     };
 
-    // Inicjalizacja Firebase i Bazy danych
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
     const ordersRef = ref(db, 'orders');
 
-    // Funkcje dla guzików
+    // Funkcje operacji na bazie
     window.addOrder = function() {
       const input = document.getElementById('orderInput');
       const number = input.value.trim();
@@ -337,63 +336,74 @@
       });
 
       input.value = '';
+      loadOrders(); // Natychmiastowe odświeżenie po dodaniu
     };
 
     window.moveToReady = function(id) {
       const itemRef = ref(db, `orders/${id}`);
-      update(itemRef, { status: 'ready' });
+      update(itemRef, { status: 'ready' }).then(() => loadOrders());
     };
 
     window.deleteOrder = function(id) {
       const itemRef = ref(db, `orders/${id}`);
-      remove(itemRef);
+      remove(itemRef).then(() => loadOrders());
     };
 
-    // Odbieranie zmian na żywo
-    onValue(ordersRef, (snapshot) => {
-      const data = snapshot.val();
-      const boardPrep = document.getElementById('boardPrep');
-      const boardReady = document.getElementById('boardReady');
-      const cashierList = document.getElementById('cashierList');
+    // Funkcja pobierająca i odświeżająca listę zamówień
+    function loadOrders() {
+      get(ordersRef).then((snapshot) => {
+        const data = snapshot.val();
+        const boardPrep = document.getElementById('boardPrep');
+        const boardReady = document.getElementById('boardReady');
+        const cashierList = document.getElementById('cashierList');
 
-      boardPrep.innerHTML = '';
-      boardReady.innerHTML = '';
-      cashierList.innerHTML = '';
+        boardPrep.innerHTML = '';
+        boardReady.innerHTML = '';
+        cashierList.innerHTML = '';
 
-      if (data) {
-        Object.keys(data).forEach(key => {
-          const order = data[key];
+        if (data) {
+          Object.keys(data).forEach(key => {
+            const order = data[key];
 
-          // 1. Ekran Zamówień
-          const li = document.createElement('li');
-          li.className = 'order-number';
-          li.textContent = order.number;
+            // 1. Ekran Zamówień
+            const li = document.createElement('li');
+            li.className = 'order-number';
+            li.textContent = order.number;
 
-          if (order.status === 'prep') {
-            boardPrep.appendChild(li);
-          } else {
-            boardReady.appendChild(li);
-          }
+            if (order.status === 'prep') {
+              boardPrep.appendChild(li);
+            } else {
+              boardReady.appendChild(li);
+            }
 
-          // 2. Panel Kasjera
-          const cashierItem = document.createElement('div');
-          cashierItem.className = 'cashier-item';
-          const statusText = order.status === 'prep' ? '(W przyg.)' : '(Gotowe)';
-          
-          cashierItem.innerHTML = `
-            <span><strong>#${order.number}</strong> <small style="color:#aaa">${statusText}</small></span>
-            <div class="item-controls">
-              ${order.status === 'prep' 
-                ? `<button class="action-btn btn-move" onclick="moveToReady('${key}')">Gotowe</button>` 
-                : ''}
-              <button class="action-btn btn-delete" onclick="deleteOrder('${key}')">Usuń</button>
-            </div>
-          `;
+            // 2. Panel Kasjera
+            const cashierItem = document.createElement('div');
+            cashierItem.className = 'cashier-item';
+            const statusText = order.status === 'prep' ? '(W przyg.)' : '(Gotowe)';
+            
+            cashierItem.innerHTML = `
+              <span><strong>#${order.number}</strong> <small style="color:#aaa">${statusText}</small></span>
+              <div class="item-controls">
+                ${order.status === 'prep' 
+                  ? `<button class="action-btn btn-move" onclick="moveToReady('${key}')">Gotowe</button>` 
+                  : ''}
+                <button class="action-btn btn-delete" onclick="deleteOrder('${key}')">Usuń</button>
+              </div>
+            `;
 
-          cashierList.appendChild(cashierItem);
-        });
-      }
-    });
+            cashierList.appendChild(cashierItem);
+          });
+        }
+      });
+    }
+
+    // Pierwsze pobranie danych po starcie
+    loadOrders();
+
+    // AUTOMATYCZNE ODŚWIEŻANIE CO 2 SEKUNDY (2000 ms)
+    setInterval(() => {
+      loadOrders();
+    }, 2000);
   </script>
 
   <script>

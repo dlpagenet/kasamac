@@ -11,7 +11,7 @@
       padding: 0;
       font-family: 'Arial Black', Gadget, sans-serif;
       -webkit-tap-highlight-color: transparent;
-      user-select: none; /* Zapobiega zaznaczaniu tekstu przy szybkim klikaniu */
+      user-select: none;
     }
 
     body {
@@ -55,7 +55,7 @@
       display: block;
     }
 
-    /* Guzik pełnego ekranu dla tabletu */
+    /* Guzik pełnego ekranu (dyskretny w narożniku) */
     .fullscreen-btn {
       position: absolute;
       top: -10px;
@@ -67,6 +67,7 @@
       font-size: 12px;
       cursor: pointer;
       border-radius: 5px;
+      z-index: 10;
     }
 
     /* --- EKRAN ZAMÓWIEŃ (TABLET) --- */
@@ -124,60 +125,63 @@
       border-radius: 8px;
     }
 
-    /* Tryb pełnoekranowy (Tablet) */
-    :fullscreen body { padding: 0; }
-    :fullscreen .top-bar, :fullscreen h1 { display: none; }
-    :fullscreen .board { max-width: 100vw; height: 100vh; gap: 0; }
-    :fullscreen .column { border: none; border-radius: 0; background-color: transparent; }
-    :fullscreen .column-title { font-size: 32px; padding: 20px; }
-    :fullscreen .order-number { font-size: 58px; background-color: transparent; padding: 10px 25px; }
+    /* TRYB PEŁNOEKRANOWY - EKRAN ZAMÓWIEŃ */
+    #ordersView:fullscreen body { padding: 0; }
+    #ordersView:fullscreen .top-bar, #ordersView:fullscreen h1 { display: none; }
+    #ordersView:fullscreen .board { max-width: 100vw; height: 100vh; gap: 0; }
+    #ordersView:fullscreen .column { border: none; border-radius: 0; background-color: transparent; }
+    #ordersView:fullscreen .column-title { font-size: 32px; padding: 20px; }
+    #ordersView:fullscreen .order-number { font-size: 58px; background-color: transparent; padding: 10px 25px; }
 
-    /* --- PANEL KASJERA (TELEFON) --- */
+    /* --- PANEL KASJERA (PIONOWY TELEFON) --- */
     .cashier-box {
-      max-width: 400px;
+      max-width: 380px;
       margin: 0 auto;
       background-color: #1e1e1e;
-      padding: 20px;
+      padding: 15px;
       border-radius: 12px;
       border: 2px solid #333;
+      display: flex;
+      flex-direction: column;
     }
 
-    /* Wyświetlacz wpisywanego numeru */
+    /* Wyświetlacz numeru */
     .display-input {
       width: 100%;
-      padding: 12px;
-      font-size: 28px;
+      padding: 10px;
+      font-size: 32px;
       font-weight: bold;
       border-radius: 8px;
       border: 2px solid #555;
       background-color: #000;
       color: #ffbc0d;
       text-align: center;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       letter-spacing: 2px;
     }
 
-    /* Klawiatura numeryczna */
+    /* Klawiatura numeryczna pod pionowy telefon */
     .numpad {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
-      margin-bottom: 15px;
+      gap: 8px;
+      margin-bottom: 12px;
     }
 
     .num-btn {
       background-color: #2a2a2a;
       color: #ffffff;
       border: 1px solid #444;
-      padding: 15px 0;
-      font-size: 22px;
+      padding: 16px 0;
+      font-size: 24px;
       font-weight: bold;
       border-radius: 8px;
       cursor: pointer;
     }
 
     .num-btn:active {
-      background-color: #444;
+      background-color: #ffbc0d;
+      color: #000000;
     }
 
     .btn-clear { background-color: #d32f2f; }
@@ -196,26 +200,68 @@
     .btn-add {
       width: 100%;
       background-color: #0288d1;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       font-size: 18px;
+      padding: 14px 0;
     }
 
     .btn-move { background-color: #2e7d32; }
     .btn-delete { background-color: #d32f2f; }
+
+    /* Lista zamówień na telefonie z własnym suwakiem */
+    .cashier-list-container {
+      max-height: 220px;
+      overflow-y: auto;
+      margin-top: 5px;
+    }
 
     .cashier-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       background-color: #2a2a2a;
-      padding: 10px 15px;
+      padding: 10px 12px;
       border-radius: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .item-controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
+    }
+
+    /* TRYB PEŁNOEKRANOWY - PANEL KASJERA (TELEFON) */
+    #cashierView:fullscreen {
+      background-color: #121212;
+      height: 100vh;
+      width: 100vw;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    #cashierView:fullscreen h1 {
+      display: none; /* Ukryj nagłówek na pełnym ekranie telefonu */
+    }
+
+    #cashierView:fullscreen .cashier-box {
+      border: none;
+      background-color: transparent;
+      padding: 0;
+      max-width: 100%;
+      height: 100%;
+      justify-content: space-between;
+    }
+
+    #cashierView:fullscreen .fullscreen-btn {
+      top: 5px;
+      right: 5px;
+    }
+
+    #cashierView:fullscreen .cashier-list-container {
+      flex: 1;
+      max-height: none;
     }
   </style>
 </head>
@@ -229,7 +275,7 @@
 
   <!-- WIDOK 1: EKRAN ZAMÓWIEŃ (TABLET) -->
   <div id="ordersView" class="view active">
-    <button class="fullscreen-btn" onclick="toggleFullScreen()">⛶ Pełny ekran</button>
+    <button class="fullscreen-btn" onclick="toggleFullScreen('ordersView')">⛶ Pełny ekran</button>
     <h1>Stan Zamówień</h1>
     
     <div class="board">
@@ -245,15 +291,17 @@
     </div>
   </div>
 
-  <!-- WIDOK 2: PANEL KASJERA (TELEFON) -->
+  <!-- WIDOK 2: PANEL KASJERA (PIONOWY TELEFON) -->
   <div id="cashierView" class="view">
+    <button class="fullscreen-btn" onclick="toggleFullScreen('cashierView')">⛶ Pełny ekran</button>
     <h1>Panel Kasjera</h1>
+    
     <div class="cashier-box">
       
-      <!-- Ekran wpisywanego numeru (readonly - zero klawiatury systemowej!) -->
+      <!-- Ekran wpisywanego numeru -->
       <input type="text" id="orderInput" class="display-input" placeholder="Wpisz nr" readonly>
 
-      <!-- Dotykowa klawiatura numeryczna -->
+      <!-- Klawiatura numeryczna -->
       <div class="numpad">
         <button class="num-btn" onclick="pressNum('1')">1</button>
         <button class="num-btn" onclick="pressNum('2')">2</button>
@@ -271,8 +319,9 @@
 
       <button class="action-btn btn-add" onclick="addOrder()">+ Dodaj Zamówienie</button>
 
-      <h2>Lista Zamówień</h2>
-      <div id="cashierList" style="margin-top: 15px;"></div>
+      <div class="cashier-list-container">
+        <div id="cashierList"></div>
+      </div>
 
     </div>
   </div>
@@ -287,11 +336,16 @@
       document.getElementById(viewId).classList.add('active');
     }
 
-    function toggleFullScreen() {
+    // Przełączanie pełnego ekranu dla konkretnego widoku
+    function toggleFullScreen(elementId) {
+      const elem = document.getElementById(elementId);
+
       if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-          alert(`Błąd pełnego ekranu: ${err.message}`);
-        });
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { /* Safari / iOS */
+          elem.webkitRequestFullscreen();
+        }
       } else {
         if (document.exitFullscreen) {
           document.exitFullscreen();
@@ -299,10 +353,10 @@
       }
     }
 
-    /* Obsługa dotykowej klawiatury numerycznej */
+    /* Klawiatura numeryczna */
     function pressNum(num) {
       const input = document.getElementById('orderInput');
-      if (input.value.length < 4) { // Ograniczenie do max 4 cyfr
+      if (input.value.length < 4) {
         input.value += num;
       }
     }
@@ -365,10 +419,10 @@
         const cashierItem = document.createElement('div');
         cashierItem.className = 'cashier-item';
 
-        const statusText = order.status === 'prep' ? '(W przygotowaniu)' : '(Gotowe)';
+        const statusText = order.status === 'prep' ? '(W przyg.)' : '(Gotowe)';
         
         cashierItem.innerHTML = `
-          <span><strong>#${order.number}</strong> <small>${statusText}</small></span>
+          <span><strong>#${order.number}</strong> <small style="color:#aaa">${statusText}</small></span>
           <div class="item-controls">
             ${order.status === 'prep' 
               ? `<button class="action-btn btn-move" onclick="moveToReady(${order.id})">Gotowe</button>` 
